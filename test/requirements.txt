@@ -1,0 +1,10 @@
+boto3==1.16.35
+moto==1.3.14
+mock==4.0.3
+coverage
+awscli
+flake8
+radon
+bandit
+flake8_polyfill
+cryptography==3.3.2

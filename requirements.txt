@@ -1,0 +1,4 @@
+boto3==1.16.35
+awscli
+docker-compose
+aws-sam-cli

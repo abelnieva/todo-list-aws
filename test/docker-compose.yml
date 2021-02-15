@@ -1,0 +1,20 @@
+version: '3.3'
+
+services:
+   db:
+     image: amazon/dynamodb-local
+     ports:
+       - "8000:8000"
+
+   tests:
+     depends_on:
+       - db
+     build: .
+     environment:
+        AWS_DEFAULT_REGION: "us-east-1"
+     volumes:
+       - ./:/code
+     command: ./test.sh
+     stop_signal: SIGINT
+     links:
+      - db

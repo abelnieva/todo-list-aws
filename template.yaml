@@ -1,0 +1,208 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  todo-list-aws
+
+  Sample SAM Template for todo-list-aws
+Parameters :
+  Environment :
+    Type : "String"
+    Default : "Staging"
+    AllowedValues : ["dev","Staging", "prod"]
+  ServiceName: 
+    Type : "String"
+    Default : "todo-list-aws"
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  IAMLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: "IAM to manage Lambda functions"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service: 
+              - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: "IAM"
+          PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                      - 'dynamodb:Query'
+                      - 'dynamodb:Scan'
+                      - 'dynamodb:GetItem'
+                      - 'dynamodb:PutItem'
+                      - 'dynamodb:UpdateItem'
+                      - 'dynamodb:DeleteItem'
+                  Resource: !GetAtt DynamoDBTable.Arn
+                - Effect: Allow
+                  Action:
+                      - 'translate:*'
+                      - 'comprehend:*'
+                      - 'logs:*'
+                  Resource: '*'
+  ApiDeployment:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      
+  createFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: todos
+      Handler: create.create
+      Runtime: python3.7
+      Role: !GetAtt IAMLambdaRole.Arn
+      Environment: 
+        Variables:
+          DYNAMODB_TABLE: !Sub "todo-list-aws-${Environment}"
+      Events:
+        Create:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /todos
+            Method: post
+            RestApiId: !Ref ApiDeployment
+
+  listFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: todos
+      Handler: list.list
+      Runtime: python3.7
+      Role: !GetAtt IAMLambdaRole.Arn
+      Environment: 
+        Variables:
+          DYNAMODB_TABLE: !Sub "todo-list-aws-${Environment}"
+      Events:
+        list:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /todos
+            Method: get
+            RestApiId: !Ref ApiDeployment
+            
+  getFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: todos
+      Handler: get.get
+      Runtime: python3.7
+      Role: !GetAtt IAMLambdaRole.Arn
+      Environment: 
+        Variables:
+          DYNAMODB_TABLE: !Sub "todo-list-aws-${Environment}"
+      Events:
+        list:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: "/todos/{id}"
+            Method: get
+            RestApiId: !Ref ApiDeployment
+            
+  deleteFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: todos
+      Handler: delete.delete
+      Runtime: python3.7
+      Role: !GetAtt IAMLambdaRole.Arn
+      Environment: 
+        Variables:
+          DYNAMODB_TABLE: !Sub "todo-list-aws-${Environment}"
+      Events:
+        list:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: "/todos/{id}"
+            Method: delete
+            RestApiId: !Ref ApiDeployment
+
+  updateFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: todos
+      Handler: update.update
+      Runtime: python3.7
+      Role: !GetAtt IAMLambdaRole.Arn
+      Environment: 
+        Variables:
+          DYNAMODB_TABLE: !Sub "todo-list-aws-${Environment}"
+      Events:
+        list:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: "/todos/{id}"
+            Method: put
+            RestApiId: !Ref ApiDeployment
+  
+  
+  translateFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: todos
+      Handler: translate.translate
+      Runtime: python3.7
+      Role: !GetAtt IAMLambdaRole.Arn
+      Environment: 
+        Variables:
+          DYNAMODB_TABLE: !Sub "todo-list-aws-${Environment}"
+      Events:
+        list:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: "/todos/{id}/{language}"
+            Method: get
+            RestApiId: !Ref ApiDeployment
+  
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: id
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName:  !Sub "${ServiceName}-${Environment}"
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  awstodolist:
+    Description: "API Gateway endpoint URL for  stage"
+    Value: !Sub "https://${ApiDeployment}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  createFunctionFunction:
+    Description: "createFunctionFunction Lambda Function ARN"
+    Value: !GetAtt createFunction.Arn
+  listFunction:
+    Description: "listFunction Lambda Function ARN"
+    Value: !GetAtt listFunction.Arn
+  getFunction:
+    Description: "getFunction Lambda Function ARN"
+    Value: !GetAtt getFunction.Arn
+  deleteFunction:
+    Description: "deleteFunction Lambda Function ARN"
+    Value: !GetAtt deleteFunction.Arn
+  updateFunction:
+    Description: "updateFunction Lambda Function ARN"
+    Value: !GetAtt updateFunction.Arn
+  translateFunction:
+    Description: "translateFunction Lambda Function ARN"
+    Value: !GetAtt translateFunction.Arn
+  DynamoDBTableArn:
+    Value: { "Ref" : "DynamoDBTable"  }
