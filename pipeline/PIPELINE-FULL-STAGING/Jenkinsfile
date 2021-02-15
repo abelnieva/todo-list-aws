@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    environment {
+        ENVIRONMENT = 'Staging'
+        S3_BUCKET = "es-unir-staging-s3-63265-artifacts"
+        REGION="us-east-1"
+    }
     stages {
         stage('Clean'){    
             steps {
@@ -20,7 +25,6 @@ pipeline {
                 sh '''
                     python3 -m venv sandbox
                     source sandbox/bin/activate 
-                    ls -l 
                     pip install -r todos/requirements.txt -q
                     pip install -r requirements.txt -q
                     pip install -r test/requirements.txt -q
@@ -35,7 +39,6 @@ pipeline {
                 sh '''
                     source sandbox/bin/activate 
                     export HOST_UID_GID=$(id -u):$(id -g)
-                    docker-compose  -f docker-compose-tests.yml  up   --abort-on-container-exit
                 '''
             }
             
@@ -43,17 +46,26 @@ pipeline {
         
         stage('Build & Package'){
             steps{
-                sh 'sam build & sam package ----s3-bucket es-unir-staging-s3-63265-artifacts'
+                sh 'sam build & sam package --s3-bucket ${S3_BUCKET}'
+            }
+        }
+        
+        stage('Preview Deploy'){
+            steps{
+                sh 'sam deploy --stack-name todo-list-aws-${ENVIRONMENT} --s3-bucket ${S3_BUCKET} --region ${REGION} --capabilities "CAPABILITY_IAM" --parameter-overrides Environment=${ENVIRONMENT} --no-fail-on-empty-changeset --no-execute-changeset'
+            }
+        }
+        stage('Deploy'){
+          input{
+                message "¿Esta seguro de desplegar la solución ?"
+            }
+            steps{
+                sh 'sam deploy --stack-name todo-list-aws-${ENVIRONMENT} --s3-bucket ${S3_BUCKET} --region ${REGION} --capabilities "CAPABILITY_IAM" --parameter-overrides Environment=${ENVIRONMENT} --no-fail-on-empty-changeset --no-confirm-changeset'
             }
         }
 
     }
     
-        post {
-        always {
-            junit 'test/output/*.xml'
-        }
-    }
 
 }
 

@@ -1,1 +1,19 @@
-//A rellenar por el alumno
+pipeline {
+    agent any
+    stages {
+        stage('Ejecutando Staging') {
+            steps {
+                script{
+                    build job: 'todo-list-aws-staging', propagate: true, wait: true
+                }
+            }
+        }
+        stage('Ejecutar Produccion') {
+            steps {
+                script{
+                    build job: 'todo-list-aws-prod', propagate: true, wait: true
+                }
+            }
+        }
+    }
+}
