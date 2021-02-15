@@ -9,13 +9,13 @@ services:
    tests:
      depends_on:
        - db
-     build: ./test/
+     build: .
      user: ${HOST_UID_GID}
      environment:
         AWS_DEFAULT_REGION: "us-east-1"
      volumes:
        - ./:/code
-     command: ./test/test.sh
+     command: ./test.sh
      stop_signal: SIGINT
      links:
       - db
