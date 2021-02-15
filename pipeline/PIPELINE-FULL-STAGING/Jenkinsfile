@@ -40,6 +40,12 @@ pipeline {
             }
             
         }
+        
+        stage('Build & Package'){
+            steps{
+                sh 'sam build & sam package ----s3-bucket es-unir-staging-s3-63265-artifacts'
+            }
+        }
 
     }
     

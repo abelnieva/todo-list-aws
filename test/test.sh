@@ -1,14 +1,19 @@
 #!/bin/sh
-mkdir -p output
-echo "test Repors"
-coverage run -m TestToDo 
-coverage xml -o output/coverage.xml
-ls -l 
-echo "Flake tests"
-#flake8 . --count
+
+mkdir -p test/output
+
+echo "Flake apps"
+flake8 ./todos --count
 echo "Bandit"
-#bandit -r .
+bandit -r ./todos --exit-zero --format txt --output test/output/bandit.txt
+cat output/bandit.txt
+grep -il 'No issues identified' ./test/output/bandit.txt || echo 'Bandit: failed!'
 echo "Radon"
-#radon cc . 
+radon cc . 
+
+echo "test Repors"
+cd test/
+coverage run    -m TestToDo 
+coverage html --fail-under=50  -d output
 
 echo "Press CTRL+C to exit"
