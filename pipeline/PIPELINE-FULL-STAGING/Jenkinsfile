@@ -11,6 +11,7 @@ pipeline {
         stage('SetUp'){
             steps{
                 // Setup Virtualenv for testing
+                echo "Setup Virtualenv for testing"
             }
         }
         stage('Test'){
