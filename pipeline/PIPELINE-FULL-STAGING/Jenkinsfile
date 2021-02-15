@@ -39,7 +39,9 @@ pipeline {
             }
             
         }
-        post {
+
+    }
+    post {
         always {
             junit 'output/*.xml'
         }
