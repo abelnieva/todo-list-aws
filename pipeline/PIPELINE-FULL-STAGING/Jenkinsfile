@@ -34,7 +34,8 @@ pipeline {
                     echo 'Make some cool static program analysis wich radon. IIs the code enought simple to understand?'
                 sh '''
                     source sandbox/bin/activate 
-                    make localTest
+                    export HOST_UID_GID=$(id -u):$(id -g)
+                    docker-compose  -f test/docker-compose.yml  up   --abort-on-container-exit
                 '''
             }
             

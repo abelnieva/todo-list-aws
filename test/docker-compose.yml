@@ -10,7 +10,7 @@ services:
      depends_on:
        - db
      build: .
-     user: "jenkins:jenkins"
+     user: ${HOST_UID_GID}
      environment:
         AWS_DEFAULT_REGION: "us-east-1"
      volumes:
