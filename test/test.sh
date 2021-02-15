@@ -1,7 +1,7 @@
 #!/bin/sh
 
 mkdir -p test/output
-
+ls -l 
 echo "Flake apps"
 flake8 ./todos --count
 echo "Bandit"
