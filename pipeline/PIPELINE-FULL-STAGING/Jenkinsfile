@@ -35,7 +35,7 @@ pipeline {
                 sh '''
                     source sandbox/bin/activate 
                     export HOST_UID_GID=$(id -u):$(id -g)
-                    docker-compose  -f test/docker-compose.yml  up   --abort-on-container-exit
+                    docker-compose  -f docker-compose-tests.yml  up   --abort-on-container-exit
                 '''
             }
             
