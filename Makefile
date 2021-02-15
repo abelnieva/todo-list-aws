@@ -1,7 +1,4 @@
 localTest: 
-	export UIDs=${UID}
-	export GIDs=${GID}
-	echo "user ${UID}:${GID}"
 	docker-compose  -f test/docker-compose.yml  up   --abort-on-container-exit
 setupLocalEnv:
 	sudo pip3 install -r requirements.txt 
