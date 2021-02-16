@@ -61,9 +61,18 @@ pipeline {
                 sh 'sam deploy --stack-name todo-list-aws-${ENVIRONMENT} --s3-bucket ${S3_BUCKET} --region ${REGION} --capabilities "CAPABILITY_IAM" --parameter-overrides Environment=${ENVIRONMENT} --no-fail-on-empty-changeset --no-confirm-changeset'
             }
         }
-
+        
+        stage('Integration test'){
+            steps{
+                sh 'python integration-tests/tests.py ${todo-list-aws-${ENVIRONMENT}'
+            }
+        }
     }
     
-
+            post {
+        always {
+            cleanWs(cleanWhenNotBuilt: false, deleteDirs: true)
+        }
+        }
 }
 

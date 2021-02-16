@@ -64,8 +64,16 @@ pipeline {
                 sh 'sam deploy --stack-name todo-list-aws-${ENVIRONMENT} --s3-bucket ${S3_BUCKET} --region ${REGION} --capabilities "CAPABILITY_IAM" --parameter-overrides Environment=${ENVIRONMENT} --no-fail-on-empty-changeset --no-confirm-changeset'
             }
         }
+        
+
 
     }
+    
+            post {
+        always {
+            cleanWs(cleanWhenNotBuilt: false, deleteDirs: true)
+        }
+        } 
     
 
 }
