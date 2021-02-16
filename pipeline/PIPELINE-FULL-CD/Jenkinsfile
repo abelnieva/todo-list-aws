@@ -4,14 +4,14 @@ pipeline {
         stage('Ejecutando Staging') {
             steps {
                 script{
-                    build job: 'todo-list-aws-staging', propagate: true, wait: true
+                    build job: 'todo-list-aws-pipeline-staging', propagate: true, wait: true
                 }
             }
         }
         stage('Ejecutar Produccion') {
             steps {
                 script{
-                    build job: 'todo-list-aws-prod', propagate: true, wait: true
+                    build job: 'todo-list-aws-pipeline-prod', propagate: true, wait: true
                 }
             }
         }
