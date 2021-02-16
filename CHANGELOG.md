@@ -1,6 +1,10 @@
 # Change Log
+
 ## [Unreleased] - 2021-02-15 
 Actualizando los pipelines jenkins 
+Creación test de integracion
+Refactor fase de test 
+actualizar el README 
 
 ## [Unreleased] - 2021-02-14
 Remover referencias innecesarias hello world  , actualice las output de sam 

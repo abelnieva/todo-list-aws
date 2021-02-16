@@ -1,1 +1,89 @@
-// A rellenar por el alumno
+pipeline {
+    agent any
+    environment {
+        ENVIRONMENT = 'prod'
+        S3_BUCKET = "es-unir-production-s3-63265-artifacts"
+        REGION="us-east-1"
+    }
+    stages {
+        stage('Clean'){    
+            steps {
+                deleteDir()
+                sh 'printenv'
+            }
+        }
+        stage('Checkout code'){    
+            steps {
+            checkout scm
+            }
+        }
+
+        stage('SetUp'){
+            steps{
+                // Setup Virtualenv for testing
+                echo "Setup Virtualenv for testing"
+                sh '''
+                    python3 -m venv sandbox
+                    source sandbox/bin/activate 
+                    pip install -r todos/requirements.txt -q
+                    pip install -r requirements.txt -q
+                    pip install -r test/requirements.txt -q
+
+                '''
+            }
+        }
+        stage('Test'){
+            steps{
+                    // Static program analysis -> radon
+                    echo 'Make some cool static program analysis wich radon. IIs the code enought simple to understand?'
+                sh '''
+                    source sandbox/bin/activate 
+                    export HOST_UID_GID=$(id -u):$(id -g)
+                    docker-compose  -f docker-compose-tests.yml  up   --abort-on-container-exit
+                '''
+            }
+            
+        }
+        
+        stage('Build & Package'){
+            steps{
+                sh 'sam build & sam package --s3-bucket ${S3_BUCKET}'
+            }
+        }
+        
+        stage('Preview Deploy'){
+            steps{
+                sh 'sam deploy --stack-name todo-list-aws-${ENVIRONMENT} --s3-bucket ${S3_BUCKET} --region ${REGION} --capabilities "CAPABILITY_IAM" --parameter-overrides Environment=${ENVIRONMENT} --no-fail-on-empty-changeset --no-execute-changeset'
+            }
+        }
+        stage('Deploy'){
+          input{
+                message "¿Esta seguro de desplegar la solución ?"
+            }
+            steps{
+                sh 'sam deploy --stack-name todo-list-aws-${ENVIRONMENT} --s3-bucket ${S3_BUCKET} --region ${REGION} --capabilities "CAPABILITY_IAM" --parameter-overrides Environment=${ENVIRONMENT} --no-fail-on-empty-changeset --no-confirm-changeset'
+            }
+        }
+        
+        stage('Integration test'){
+            steps{
+                sh '''
+                source sandbox/bin/activate
+                python integration-tests/tests.py todo-list-aws-${ENVIRONMENT}
+                '''
+            }
+        }
+        
+
+
+    }
+    
+            post {
+        always {
+            cleanWs(cleanWhenNotBuilt: false, deleteDirs: true)
+        }
+        } 
+    
+
+}
+

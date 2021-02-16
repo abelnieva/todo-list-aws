@@ -1,5 +1,6 @@
+export HOST_UID_GID=$(id -u):$(id -g)
 localTest: 
-	docker-compose  -f test/docker-compose.yml  up   --abort-on-container-exit
+	docker-compose  -f docker-compose-tests.yml  up   --abort-on-container-exit
 setupLocalEnv:
 	sudo pip3 install -r requirements.txt 
 startLocalDB:
