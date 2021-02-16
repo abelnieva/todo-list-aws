@@ -64,7 +64,10 @@ pipeline {
         
         stage('Integration test'){
             steps{
-                sh 'python integration-tests/tests.py ${todo-list-aws-${ENVIRONMENT}'
+                sh '''
+                source sandbox/bin/activate
+                python integration-tests/tests.py todo-list-aws-${ENVIRONMENT}
+                '''
             }
         }
     }
