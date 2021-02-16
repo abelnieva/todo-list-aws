@@ -9,7 +9,7 @@ bandit -r ./todos --exit-zero --format txt --output test/output/bandit.txt
 cat output/bandit.txt
 grep -il 'No issues identified' ./test/output/bandit.txt || echo 'Bandit: failed!'
 echo "Radon"
-radon cc . 
+radon cc ./todos
 
 echo "test Repors"
 cd test/
